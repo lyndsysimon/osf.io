@@ -15,15 +15,8 @@ def _validate_boolean_dict(item):
 
 
 class InheritableObjectMeta(ObjectMeta):
+    """Metaclass for InheritableStoredObject - tightly coupled"""
     def __init__(cls, name, bases, dct):
-
-        # # Reassign register_collection; ObjectMeta's constructor calls it
-        # cls._old_register_collection = cls.register_collection
-        #
-        # def noop(cls):
-        #     pass
-        # # bind fake method to the new class
-        # cls.register_collection = types.MethodType(noop, cls)
 
         super(InheritableObjectMeta, cls).__init__(name, bases, dct)
 
@@ -32,63 +25,72 @@ class InheritableObjectMeta(ObjectMeta):
             return
 
         # Walk up the inheritance tree until we get to the direct descendant of
-        #  InheritableStoredObject
+        #  InheritableStoredObject (the base inheritable)
         inherited_class = cls
         inherited_bases = bases
         while 'InheritableStoredObject' != inherited_bases[0].__name__:
             inherited_class = inherited_bases[0]
             inherited_bases = inherited_bases[0].__bases__
 
+        # Set the collection for this class to that of the base inheritable
+        cls._name = inherited_class._name
 
-        if 'InheritableStoredObject' in [x.__name__ for x in inherited_bases]:
-            cls._name = inherited_class._name
-
-
+        # Set default value for __polymorphic_type
         if not hasattr(cls, '__polymorphic_type'):
             cls.__polymorphic_type = cls.__name__
 
 
-        # # revert the changes so the class can be registered to a collection
-        # cls.register_collection = cls._old_register_collection
-        # del cls._old_register_collection
-
-
 @six.add_metaclass(InheritableObjectMeta)
 class InheritableStoredObject(StoredObject):
+    """StoredObject subclass for models which will share a single collection.
+
+    Modeled after SQLAlchemy's "Joined Table Inheritance":
+        http://docs.sqlalchemy.org/en/rel_0_9/orm/inheritance.html
+    """
 
     def __init__(self, *args, **kwargs):
-        pt = kwargs.get('__polymorphic_type', self._InheritableObjectMeta__polymorphic_type)
+        # Polymorphic type
+        pt = kwargs.get('__polymorphic_type',
+                        self._InheritableObjectMeta__polymorphic_type)
+        # Dynamically reclass the object being constructed to the correct class
         self.__class__ = self.gather_polymorphic_types().get(pt, self)
+
         super(InheritableStoredObject, self).__init__(*args, **kwargs)
 
     @classmethod
     def find(cls, query=None, **kwargs):
+        query = cls._build_query_filter(query)
+        return super(InheritableStoredObject, cls).find(query, **kwargs)
+
+    @classmethod
+    def find_one(cls, query=None, **kwargs):
+        query = cls._build_query_filter(query)
+        return super(InheritableStoredObject, cls).find_one(query, **kwargs)
+
+    @classmethod
+    def _build_query_filter(cls, query):
+        # build a list of Query objects, one for each subclass
         query_parts = [
             Q('__polymorphic_type', 'eq', sub._InheritableObjectMeta__polymorphic_type)
             for sub in cls.gather_subclasses()
         ]
 
-        if query is None:
-            query = query_parts.pop()
-
+        # assemble a filter queryset
+        filter = query_parts.pop()
         for part in query_parts:
-            query |= part
+            filter |= part
 
-        return super(InheritableStoredObject, cls).find(query, **kwargs)
+        # require that the filter be met in addition to the provided query
+        if query is not None:
+            query &= filter
+        else:
+            query = filter
 
-    # @classmethod
-    # def from_storage(cls, data, **kwargs):
-    #     pt = data.get('__polymorphic_type', cls._InheritableObjectMeta__polymorphic_type)
-    #     obj_class = cls.gather_polymorphic_types().get(pt, cls)
-    #     if cls is obj_class:
-    #         print("Have decided on: " + repr(cls))
-    #         print(repr(data))
-    #         return super(InheritableStoredObject, cls).from_storage(data, **kwargs)
-    #     return obj_class.from_storage(data=data, **kwargs)
-
+        return query
 
     @classmethod
     def gather_subclasses(cls):
+        """Return a set of classes which inherent from this one"""
         if cls is InheritableStoredObject:
             raise RuntimeError("Cannot gather subclasses for inheritable base")
         subclasses = set()
@@ -99,23 +101,11 @@ class InheritableStoredObject(StoredObject):
 
     @classmethod
     def gather_polymorphic_types(cls):
+        """Return a dict mapping polymorphic types to classes"""
         return {
             sub._InheritableObjectMeta__polymorphic_type: sub
             for sub in cls.gather_subclasses()
         }
-
-    # @classmethod
-    # def load(cls, *args, **kwargs):
-    #     obj = super(InheritableStoredObject, cls).load(*args, **kwargs)
-    #     data = obj._get_cached_data(obj._id)
-    #     polymorphic_type = data.get('__polymorphic_type')
-    #     print(polymorphic_type)
-    #     resolved_class = cls.gather_polymorphic_types().get(polymorphic_type)
-    #
-    #     if resolved_class is None or resolved_class is cls:
-    #         return obj
-    #     else:
-    #         return resolved_class.load(data=data)
 
     @classmethod
     def register_collection(cls):
