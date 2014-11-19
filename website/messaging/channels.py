@@ -4,9 +4,10 @@ from modularodm.exceptions import NoResultsFound
 from framework.mongo import ObjectId, StoredObject
 
 from .messages import Message
+from .utils import _validate_boolean_dict, InheritableStoredObject
 
 
-class Channel(StoredObject):
+class Channel(InheritableStoredObject):
     """A conceptual queue of messages
 
     Iterating a Channel instance yields a generator of ``Message`` objects.
@@ -21,6 +22,11 @@ class Channel(StoredObject):
     subchannels = fields.ForeignField('channel',
                                       list=True,
                                       default=lambda: list())
+
+    # Keeps track of what messages have flags set for this particular channel
+    #  keys: message IDs
+    #  values: booleans
+    _flags = fields.DictionaryField(validate=_validate_boolean_dict)
 
     def _get_nested_names(self, names=None):
         """Compile all IDs included in a ``Channel``
@@ -58,6 +64,9 @@ class Channel(StoredObject):
 
         # iterate messages
         for message in Message.find(query):
+            # detach the message object from the object cache
+            message._clear_object_cache(key=message._id)
+            message._yielded_from = self
             yield message
 
     def __repr__(self):
