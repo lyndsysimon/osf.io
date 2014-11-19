@@ -1,8 +1,9 @@
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_is_not_none
 
-from website.messaging.model import Channel, Message
-
+from website.messaging.messages import Message
+from website.messaging.channels import Channel, UserChannel
 from tests.base import DbTestCase
+from tests.factories import UserFactory
 
 
 class TestChannels(DbTestCase):
@@ -66,3 +67,14 @@ class TestNestedChannels(DbTestCase):
         assert_equal(self.parent._get_nested_names(), all_three)
         assert_equal(self.child._get_nested_names(), all_three)
         assert_equal(self.grandchild._get_nested_names(), all_three)
+
+
+class TestUserChannel(DbTestCase):
+    def setUp(self):
+        self.user = UserFactory()
+
+    def test_from_user_not_created(self):
+        channel = UserChannel.for_user(self.user)
+
+        assert_equal(channel.user, self.user)
+        assert_is_not_none(channel.name)

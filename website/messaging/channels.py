@@ -1,11 +1,14 @@
 from modularodm import fields, Q
+from modularodm.exceptions import NoResultsFound
 
-from framework.mongo import StoredObject, ObjectId
+from framework.mongo import ObjectId, StoredObject
+
+from .messages import Message
 
 
 class Channel(StoredObject):
     """A conceptual queue of messages"""
-    name = fields.StringField(primary=True)
+    name = fields.StringField(primary=True, default=lambda: str(ObjectId()))
 
     subchannels = fields.ForeignField('channel',
                                       list=True,
@@ -41,23 +44,19 @@ class Channel(StoredObject):
         return '<Channel: name="{}">'.format(self.name)
 
 
-class Message(StoredObject):
+class UserChannel(Channel):
+    """Channel containing all messages for a given User"""
 
-    _id = fields.StringField(default=lambda: str(ObjectId()))
-    # Message is satisfied for all channels
-    #   Setting this prevents the Message from being loaded from the database
-    #   for most queries.
-    satisfied = False
+    # The user to which this channel belongs
+    user = fields.ForeignField('user', required=True)
 
-    def satisfied_for(channel):
-        """Whether or not this message is satisfied for the given channel
+    @classmethod
+    def for_user(cls, user):
+        """Return the channel for a given user, creating it if necessary"""
+        try:
+            channel = cls.find_one(Q('user', 'eq', user))
+        except NoResultsFound:
+            channel = UserChannel(user=user)
+            channel.save()
 
-        :param channel Channel: The channel for which to resolve status
-        :return: bool
-        """
-        pass
-
-    channels = fields.ForeignField('channel', list=True, required=True)
-
-    def __repr__(self):
-        return '<Message _id="{}">'.format(self._id)
+        return channel

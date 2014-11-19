@@ -20,6 +20,7 @@ from website.notifications.model import NotificationDigest
 from website.notifications.model import NotificationSubscription
 from website.archiver.model import ArchiveJob, ArchiveTarget
 from website.messaging.model import Message, Channel
+from website.messaging.channels import Channel, UserChannel
 
 # All models
 MODELS = (
@@ -29,7 +30,7 @@ MODELS = (
     NotificationSubscription, NotificationDigest, CitationStyle,
     CitationStyle, ExternalAccount, Identifier, Retraction,
     Embargo, ArchiveJob, ArchiveTarget, BlacklistGuid,
-    Message, Channel,
+    Message, Channel, UserChannel,
 )
 
 GUID_MODELS = (User, Node, Comment, MetaData)
