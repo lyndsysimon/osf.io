@@ -12,4 +12,5 @@ class Message(StoredObject):
     channels = fields.ForeignField('channel', list=True, required=True)
 
     def __repr__(self):
-        return '<Message _id="{}">'.format(self._id)
+        return '<{name} _id="{id}">'.format(name=self.__class__.__name__,
+                                            id=self._id)
