@@ -2,10 +2,11 @@ from nose.tools import assert_equal, assert_is_not_none, assert_raises
 
 from modularodm.exceptions import ValidationTypeError
 
-from website.messaging.messages import Message, _validate_boolean_dict
+from website.messaging.messages import Message, AlertMessage
 from website.messaging.channels import Channel, UserChannel
 from tests.base import DbTestCase
 from tests.factories import UserFactory
+from website.messaging.utils import _validate_boolean_dict
 
 
 class TestUtilities(DbTestCase):
