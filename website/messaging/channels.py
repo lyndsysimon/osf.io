@@ -61,7 +61,8 @@ class Channel(StoredObject):
             yield message
 
     def __repr__(self):
-        return '<Channel: name="{}">'.format(self._id)
+        return '<{name}: name="{id}">'.format(name=self.__class__.__name__,
+                                              id=self._id)
 
 
 class UserChannel(Channel):
