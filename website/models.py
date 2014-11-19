@@ -12,14 +12,15 @@ from website.project.model import (
     MailRecord, Comment, PrivateLink, MetaData,
 )
 from website.conferences.model import Conference
-from website.messaging.model import Message, Channel
+from website.messaging.messages import Message
+from website.messaging.channels import Channel, UserChannel
 
 # All models
 MODELS = (
     User, ApiKey, Node, NodeLog,
     Tag, WatchConfig, Session, Guid, MetaSchema, Pointer,
     MailRecord, Comment, PrivateLink, MetaData, Conference,
-    Message, Channel,
+    Message, Channel, UserChannel,
 )
 
 GUID_MODELS = (User, Node, Comment, MetaData)
