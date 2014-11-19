@@ -7,23 +7,39 @@ from .messages import Message
 
 
 class Channel(StoredObject):
-    """A conceptual queue of messages"""
-    name = fields.StringField(primary=True, default=lambda: str(ObjectId()))
+    """A conceptual queue of messages
 
+    Iterating a Channel instance yields a generator of ``Message`` objects.
+
+    Generally, this base class will not be instantiated directly, but will be
+    subclassed to create channels with additional behaviors."""
+
+    _id = fields.StringField(primary=True, default=lambda: str(ObjectId()))
+
+    # A list of channels which feed directly into this channel. Additional
+    #   channels may be dynamically added by subclasses.
     subchannels = fields.ForeignField('channel',
                                       list=True,
                                       default=lambda: list())
 
     def _get_nested_names(self, names=None):
+        """Compile all IDs included in a ``Channel``
+
+        :param names: Used only for recursion - a set of ids already determined
+                      to be part of this channel.
+        :return: Set of IDs comprising the channel
+        :rtype: set
+        """
         # default to empty set
         if names is None:
             names = set()
 
         # handle circular references
-        if self.name in names:
+        if self._id in names:
             return names
 
-        names.add(self.name)
+        # add this channel to the set
+        names.add(self._id)
 
         # recurse for each subchannel
         for channel in self.subchannels:
@@ -32,16 +48,20 @@ class Channel(StoredObject):
         return names
 
     def __iter__(self):
-        query = Q('channels', 'eq', self.name)
+        """Yield a sequence of ```Message``` instances"""
+        # include this channel's ID
+        query = Q('channels', 'eq', self._id)
 
+        # Add all subchannel IDs to the query
         for name in self._get_nested_names():
             query |= Q('channels', 'eq', name)
 
+        # iterate messages
         for message in Message.find(query):
             yield message
 
     def __repr__(self):
-        return '<Channel: name="{}">'.format(self.name)
+        return '<Channel: name="{}">'.format(self._id)
 
 
 class UserChannel(Channel):
