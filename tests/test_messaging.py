@@ -33,15 +33,15 @@ class TestNestedChannels(DbTestCase):
     def test_nested_names(self):
         assert_equal(
             self.grandchild._get_nested_names(),
-            {self.grandchild.name}
+            {self.grandchild._id}
         )
         assert_equal(
             self.child._get_nested_names(),
-            {self.child.name, self.grandchild.name}
+            {self.child._id, self.grandchild._id}
         )
         assert_equal(
             self.parent._get_nested_names(),
-            {self.parent.name, self.child.name, self.grandchild.name}
+            {self.parent._id, self.child._id, self.grandchild._id}
         )
 
     def test_messages(self):
@@ -60,9 +60,9 @@ class TestNestedChannels(DbTestCase):
         self.grandchild.subchannels.append(self.parent)
         self.grandchild.save()
 
-        assert_equal(self.grandchild.subchannels, [self.parent.name])
+        assert_equal(self.grandchild.subchannels, [self.parent._id])
 
-        all_three = {self.parent.name, self.child.name, self.grandchild.name}
+        all_three = {self.parent._id, self.child._id, self.grandchild._id}
 
         assert_equal(self.parent._get_nested_names(), all_three)
         assert_equal(self.child._get_nested_names(), all_three)
@@ -77,4 +77,4 @@ class TestUserChannel(DbTestCase):
         channel = UserChannel.for_user(self.user)
 
         assert_equal(channel.user, self.user)
-        assert_is_not_none(channel.name)
+        assert_is_not_none(channel._id)
