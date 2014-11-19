@@ -1,10 +1,20 @@
-from nose.tools import assert_equal, assert_is_not_none
+from nose.tools import assert_equal, assert_is_not_none, assert_raises
 
-from website.messaging.messages import Message
+from modularodm.exceptions import ValidationTypeError
+
+from website.messaging.messages import Message, _validate_boolean_dict
 from website.messaging.channels import Channel, UserChannel
 from tests.base import DbTestCase
 from tests.factories import UserFactory
 
+
+class TestUtilities(DbTestCase):
+    def test_validate_boolean_dict(self):
+        # Shouldn't raise an exception
+        _validate_boolean_dict({'a': True, 'b': False})
+
+        with assert_raises(ValidationTypeError):
+            _validate_boolean_dict({'a': 1})
 
 class TestChannels(DbTestCase):
     def test_message_in_channel(self):
