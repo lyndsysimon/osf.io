@@ -1,10 +1,9 @@
 from modularodm import fields, Q
 from modularodm.exceptions import NoResultsFound
 
-from framework.mongo import ObjectId, StoredObject
+from framework.mongo import InheritableStoredObject, ObjectId, validators
 
 from .messages import Message
-from .utils import _validate_boolean_dict, InheritableStoredObject
 
 
 class Channel(InheritableStoredObject):
@@ -26,7 +25,7 @@ class Channel(InheritableStoredObject):
     # Keeps track of what messages have flags set for this particular channel
     #  keys: message IDs
     #  values: booleans
-    _flags = fields.DictionaryField(validate=_validate_boolean_dict)
+    _flags = fields.DictionaryField(validate=validators.boolean_dict)
 
     def _get_nested_names(self, names=None):
         """Compile all IDs included in a ``Channel``

@@ -1,9 +1,7 @@
-import six
 from modularodm import fields
 
-from framework.mongo import StoredObject, ObjectId
+from framework.mongo import InheritableStoredObject, ObjectId, validators
 
-from .utils import _validate_boolean_dict, InheritableStoredObject
 
 class flag(object):
     def __init__(self, f):
@@ -12,7 +10,7 @@ class flag(object):
     def __call__(self, *args, **kwargs):
         print("I've been called")
 
-#@six.add_metaclass(InheritableObjectMeta)
+
 class Message(InheritableStoredObject):
 
     _id = fields.StringField(default=lambda: str(ObjectId()))
@@ -21,7 +19,7 @@ class Message(InheritableStoredObject):
     channels = fields.ForeignField('channel', list=True, required=True)
 
     # Flags - values in this dict must be booleans
-    flags = fields.DictionaryField(validate=_validate_boolean_dict)
+    flags = fields.DictionaryField(validate=validators.boolean_dict)
 
     def __init__(self, *args, **kwargs):
         super(Message, self).__init__(*args, **kwargs)
@@ -41,4 +39,3 @@ class AlertMessage(Message):
     def read(self, channel):
         """Has this message been read by the channel?"""
         return False
-

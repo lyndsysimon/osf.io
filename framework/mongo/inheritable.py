@@ -1,17 +1,7 @@
-import types
-
 import six
 
 from modularodm import StoredObject, Q
-from modularodm.exceptions import ValidationTypeError
 from modularodm.storedobject import ObjectMeta
-
-
-def _validate_boolean_dict(item):
-    """validate that dict field contains only boolean values"""
-    for val in item.values():
-        if not isinstance(val, bool):
-            raise ValidationTypeError()
 
 
 class InheritableObjectMeta(ObjectMeta):
@@ -59,16 +49,19 @@ class InheritableStoredObject(StoredObject):
 
     @classmethod
     def find(cls, query=None, **kwargs):
+        # apply restrictions
         query = cls._build_query_filter(query)
         return super(InheritableStoredObject, cls).find(query, **kwargs)
 
     @classmethod
     def find_one(cls, query=None, **kwargs):
+        # apply restrictions
         query = cls._build_query_filter(query)
         return super(InheritableStoredObject, cls).find_one(query, **kwargs)
 
     @classmethod
     def _build_query_filter(cls, query):
+        """Restrict query to include only the appropriate polymorphic IDs"""
         # build a list of Query objects, one for each subclass
         query_parts = [
             Q('__polymorphic_type', 'eq', sub._InheritableObjectMeta__polymorphic_type)
@@ -109,10 +102,12 @@ class InheritableStoredObject(StoredObject):
 
     @classmethod
     def register_collection(cls):
+        # Prevent registration unless this is the base inheritable class
         if InheritableStoredObject in cls.__bases__:
             super(InheritableStoredObject, cls).register_collection()
 
     def to_storage(self, *args, **kwargs):
         data = super(InheritableStoredObject, self).to_storage(*args, **kwargs)
+        # Add polymorhic type to the serialized object
         data['__polymorphic_type'] = self._InheritableObjectMeta__polymorphic_type
         return data
