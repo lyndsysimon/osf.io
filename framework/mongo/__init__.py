@@ -6,6 +6,7 @@ from modularodm.ext.concurrency import with_proxies, proxied_members
 
 from bson import ObjectId
 from .handlers import client, database, set_up_storage
+from .inheritable import InheritableStoredObject
 
 
 from api.base.api_globals import api_globals
@@ -37,6 +38,7 @@ class StoredObject(GenericStoredObject):
 
 
 __all__ = [
+    'InheritableStoredObject',
     'StoredObject',
     'ObjectId',
     'client',
