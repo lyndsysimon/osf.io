@@ -321,7 +321,7 @@
                 try {
                     localStorage.setItem("slide", "0");
                 } catch (e) {
-                    $.cookie('slide', '0', { expires: 1});
+                    $.cookie('slide', '0', {path: '/', expires: 1});
                 }
             };
         };
