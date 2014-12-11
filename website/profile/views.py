@@ -63,6 +63,9 @@ def _profile_view(uid=None):
     user = get_current_user()
     profile = User.load(uid) if uid else user
 
+    if profile and profile.is_disabled:
+        raise HTTPError(http.GONE)
+
     if not (uid or user):
         return redirect('/login/?next={0}'.format(request.path))
 
