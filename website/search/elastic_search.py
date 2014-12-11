@@ -227,12 +227,12 @@ def update_node(node, index='website'):
             'contributors': [
                 x.fullname for x in node.visible_contributors
                 if x is not None
-                and x.is_active()
+                and x.is_active
             ],
             'contributors_url': [
                 x.profile_url for x in node.visible_contributors
                 if x is not None
-                and x.is_active()
+                and x.is_active
             ],
             'title': node.title,
             'normalized_title': normalized_title,
@@ -281,7 +281,7 @@ def generate_social_links(social):
 
 @requires_search
 def update_user(user):
-    if not user.is_active():
+    if not user.is_active:
         try:
             elastic.delete('website', 'user', user._id, refresh=True)
             logger.debug('User ' + user._id + ' successfully removed from the Elasticsearch index')
@@ -396,7 +396,7 @@ def search_contributor(query, page=0, size=10, exclude=[], current_user=None):
         if user is None:
             logger.error('Could not load user {0}'.format(doc['id']))
             continue
-        if user.is_active():  # exclude merged, unregistered, etc.
+        if user.is_active:  # exclude merged, unregistered, etc.
             current_employment = None
             education = None
 
@@ -419,14 +419,13 @@ def search_contributor(query, page=0, size=10, exclude=[], current_user=None):
                 ),
                 'profile_url': user.profile_url,
                 'registered': user.is_registered,
-                'active': user.is_active()
+                'active': user.is_active
 
             })
 
-    return \
-        {
-            'users': users,
-            'total': results['counts']['total'],
-            'pages': pages,
-            'page': page,
-        }
+    return {
+        'users': users,
+        'total': results['counts']['total'],
+        'pages': pages,
+        'page': page,
+    }
