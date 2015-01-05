@@ -16,7 +16,8 @@ TYPE_MAP = {
     'danger': 'danger',
 }
 
-def push_status_message(message, kind='warning', dismissible=True):
+def push_status_message(message, kind=None, dismissible=True):
+    kind = kind or 'warning'
     statuses = session.data.get('status')
     if not statuses:
         statuses = []

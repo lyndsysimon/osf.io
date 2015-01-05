@@ -105,7 +105,7 @@ def _get_user_created_badges(user):
     return []
 
 
-@must_be_logged_in
+@must_be_logged_in(message="You must login to view or edit your profile.")
 def profile_view(auth):
     return _profile_view(auth.user, True)
 
