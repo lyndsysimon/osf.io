@@ -17,7 +17,6 @@ from website.addons.mendeley.tests.factories import (
 
 from website.util import api_url_for
 from website.addons.mendeley import utils
-from website.addons.mendeley.views import serialize_settings, serialize_urls
 
 from utils import mock_responses
 
