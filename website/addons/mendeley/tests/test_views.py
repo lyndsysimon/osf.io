@@ -33,7 +33,8 @@ class MendeleyViewsTestCase(OsfTestCase):
         self.user_addon = MendeleyUserSettingsFactory(owner=self.user)
         self.project = ProjectFactory(creator=self.user)
         self.node_addon = MendeleyNodeSettingsFactory(owner=self.project, external_account=self.account)
-        self.node_addon.grant_oauth_access(self.user, self.account, metadata={'lists': 'list'})
+        self.node_addon.set_auth(external_account=self.account, user=self.user)
+        self.node_addon.set_target_folder('list')
 
 
     def test_serialize_settings_authorizer(self):
@@ -132,20 +133,6 @@ class MendeleyViewsTestCase(OsfTestCase):
         )
         assert_equal(res.status_code, 404)
 
-    def test_set_config_unauthorized(self):
-        """Cannot associate a MendeleyAccount the user doesn't own"""
-        account = MendeleyAccountFactory()
-        res = self.app.put_json(
-            self.project.api_url_for('mendeley_set_config'),
-            {
-                'external_account_id': account._id,
-                'external_list_id': 'private',
-            },
-            auth=self.user.auth,
-            expect_errors=True,
-        )
-        assert_equal(res.status_code, 403)
-
     def test_set_config_owner(self):
         """Settings config updates node settings"""
         self.node_addon.associated_user_settings = []
@@ -186,26 +173,30 @@ class MendeleyViewsTestCase(OsfTestCase):
         
 
     def test_mendeley_widget_view_complete(self):
-        """JSON: everything a widget needs"""
+        #JSON: everything a widget needs
 
-        self.node_addon.mendeley_list_id = 'ROOT'
+        self.node_addon.set_auth(external_account=self.account, user=self.user)
+        self.node_addon.set_target_folder('folder-id')
         self.node_addon.save()
         
         res = self.app.get(
             self.project.api_url_for('mendeley_widget'),
             auth=self.user.auth
         )
-        assert_equal(res.json['complete'], 'ROOT')
+        assert_true(res.json['complete'])
         
 
     def test_mendeley_widget_view_incomplete(self):
-        #"""JSON: tell the widget when it hasn't been configured"""
+        #JSON: tell the widget when it hasn't been configured
+
+        self.node_addon.set_auth(external_account=self.account, user=self.user)
+        self.node_addon.save()
 
         res = self.app.get(
             self.project.api_url_for('mendeley_widget'),
             auth=self.user.auth
-        )        
-        assert_is_none(res.json['complete'])
+        )
+        assert_false(res.json['complete'])
             
     
     @responses.activate
