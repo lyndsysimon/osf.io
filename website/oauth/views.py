@@ -21,8 +21,9 @@ def oauth_disconnect(external_account_id, auth):
 
     # iterate AddonUserSettings for addons
     for user_settings in user.get_addons():
-        user_settings.revoke_oauth_access(account)
-        user_settings.save()
+        if hasattr(user_settings, 'revoke_oauth_access'):
+            user_settings.revoke_oauth_access(account)
+            user_settings.save()
 
     # ExternalAccount.remove_one(account)
     # # only after all addons have been dealt with can we remove it from the user
