@@ -132,14 +132,18 @@ class Mendeley(ExternalProvider):
             An instance of ``mendeley.models.base_document.BaseDocument``
         :return Citation:
         """
-        #import ipdb; ipdb.set_trace()
         # if (document.json.get('id') == "033b92db-7e72-379a-9dce-b6f995bed417" or document.json.get('id') == "a028de86-7f3e-3296-bc21-ddfcaf13c5de"):
         #     import ipdb; ipdb.set_trace()
 
         csl = {
-            'id': document.json.get('id'),
-            'type': document.json.get('type'),
+            'id': document.json.get('id')
         }
+
+        csl_type = document.json.get('type')
+        if csl_type == 'journal':
+            csl_type = 'article-journal'
+
+        csl['type'] = csl_type
 
         if document.title:
             csl['title'] = document.title
@@ -155,8 +159,11 @@ class Mendeley(ExternalProvider):
         if document.json.get('source'):
             csl['source'] = document.json.get('source')
 
+        csl['container-title'] = document.json.get('container-title',
+                                                   document.json.get('source'))
+
         if document.json.get('pages'):
-            csl['pages'] = document.json.get('pages')
+            csl['page'] = document.json.get('pages')
 
         if document.json.get('issue'):
             csl['issue'] = document.json.get('issue')
