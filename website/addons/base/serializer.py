@@ -161,6 +161,9 @@ class CitationsAddonSerializer(OAuthAddonSerializer):
         pass
 
     def serialize_citation(self, citation):
+        if (citation.get('id') == "033b92db-7e72-379a-9dce-b6f995bed417" or citation.get('id') == "a028de86-7f3e-3296-bc21-ddfcaf13c5de"):
+            import ipdb; ipdb.set_trace()
+
         return {
             'csl': citation,
             'kind': 'file',
