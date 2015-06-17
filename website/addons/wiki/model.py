@@ -32,6 +32,10 @@ logger = logging.getLogger(__name__)
 
 class AddonWikiNodeSettings(AddonNodeSettingsBase):
 
+    def change_privacy():
+        freelyEditable = True
+       # add 'freelyEditable': True
+
     def after_register(self, node, registration, user, save=True):
         """Copy wiki settings to registrations."""
         clone = self.clone()
