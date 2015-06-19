@@ -32,9 +32,23 @@ logger = logging.getLogger(__name__)
 
 class AddonWikiNodeSettings(AddonNodeSettingsBase):
 
-    def change_privacy():
-        freelyEditable = True
-       # add 'freelyEditable': True
+    is_publicly_editable = fields.BooleanField(default=False, index=True)
+    # what are these and do i need to use them? GRUMBLE
+
+    def set_editing(self, permissions, auth=None):
+        """Set the editing permissions for this node.
+
+        :param permissions: A string, either 'public' or 'private'
+        :param auth: All the auth informtion including user, API key.
+        """
+        if permissions == 'public' and not self.is_publicly_editable:
+            self.is_publicly_editable = True
+            self.save()
+        elif permissions == 'private' and self.is_publicly_editable:
+            self.is_publicly_editable = False
+            self.save()
+        else:
+            return False
 
     def after_register(self, node, registration, user, save=True):
         """Copy wiki settings to registrations."""
