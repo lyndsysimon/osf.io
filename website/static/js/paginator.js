@@ -29,7 +29,7 @@ var Paginator = oop.defclass({
                 /* functions defined inside loop */
 
             self.paginators.push({
-                style: (self.currentPage() === 0) ? 'active' : '',
+                style: (self.currentPage() === 0) ? 'active hidden-xs' : 'hidden-xs',
                 text: '1',
                 handler: function() {
                     self.currentPage(0);
