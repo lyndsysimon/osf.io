@@ -22,8 +22,28 @@
                 <ul class="nav nav-stacked nav-pills">
                     <li><a href="#configureNodeAnchor">Configure ${node['node_type'].capitalize()}</a></li>
 
-                    % if 'admin' in user['permissions'] and not node['is_registration']:
-                        <li><a href="#configureCommentingAnchor">Configure Commenting</a></li>
+                    % if not node['is_registration']:
+                        <li><a href="#configureNodeAnchor">Configure ${node['node_type'].capitalize()}</a></li>
+
+                        % if 'admin' in user['permissions']:
+                            <li><a href="#configureCommentingAnchor">Configure Commenting</a></li>
+                        % endif
+
+                        % if 'write' in user['permissions']:
+                            <li><a href="#selectAddonsAnchor">Select Add-ons</a></li>
+
+                            % if addon_enabled_settings:
+                                <li><a href="#configureAddonsAnchor">Configure Add-ons</a></li>
+                            % endif
+
+                            <li><a href="#configureNotificationsAnchor">Configure Notifications</a></li>
+                        % endif
+
+                        % if 'admin' in user['permissions'] and 'wiki' in addons_enabled:
+                            <li><a href="#configureWikiAnchor">Configure Wiki</a></li>
+                        % endif
+
+
                     % endif
 
                     % if 'write' in user['permissions'] and not node['is_registration']:
@@ -204,7 +224,12 @@
 
             % endif
 
-        % endif
+        % endif  ## End Select Addons
+
+
+        % if user['has_read_permissions']:  ## Begin Configure Notifications
+
+            % if not node['is_registration']:
 
         % if not node['is_registration'] and user['has_read_permissions']:
             <div class="panel panel-default">
@@ -222,6 +247,83 @@
                     </div>
                     <div class="help-block" style="padding-left: 15px">
                             <p id="configureNotificationsMessage"></p>
+                        </div>
+                    </form>
+                </div>
+
+            %endif
+
+        % endif  ## End Configure Notifications
+
+        % if 'admin' in user['permissions'] and 'wiki' in addons_enabled:  ## Begin Configure Wiki
+
+            % if not node['is_registration']:
+
+                <div class="panel panel-default">
+                    <span id="configureWikiAnchor" class="anchor"></span>
+
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Configure Wiki</h3>
+                    </div>
+                    <div class="help-block" style="padding-left: 15px">
+                        <p>When a project or component is public,  you can set its wiki to be publicly editable. When publicly editable, any OSF user can edit its wiki.</p>
+                    </div>
+                    <form id="wikiSettings" class="osf-treebeard-minimal">
+                        <div id="wgrid">
+                            <div class="notifications-loading"> <i class="fa fa-spinner notifications-spin"></i> <p class="m-t-sm fg-load-message"> Loading wiki settings...  </p> </div>
+                        </div>
+                        <div class="help-block" style="padding-left: 15px">
+                            <p id="configureWikiMessage"></p>
+                        </div>
+                    </form>
+                </div>
+
+            %endif
+
+        % endif ## End Configure Wiki
+
+
+        % if 'admin' in user['permissions']:  ## Begin Retract Registration
+
+            % if node['is_registration']:
+
+                % if node['is_public'] or node['embargo_end_date']:
+
+                    <div class="panel panel-default">
+                        <span id="retractRegistrationAnchor" class="anchor"></span>
+
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Retract Registration</h3>
+                        </div>
+
+                        <div class="panel-body">
+
+                            % if parent_node['exists']:
+
+                                <div class="help-block">
+                                  Retracting children components of a registration is not allowed. Should you wish to
+                                  retract this component, please retract its parent registration <a href="${web_url_for('node_setting', pid=node['root_id'])}">here</a>.
+                                </div>
+
+                            % else:
+
+                                <div class="help-block">
+                                    Retracting a registration will remove its content from the OSF, but leave basic metadata
+                                    behind. The title of a retracted registration and its contributor list will remain, as will
+                                    justification or explanation of the retraction, should you wish to provide it. Retracted
+                                    registrations will be marked with a <strong>retracted</strong> tag.
+                                </div>
+
+                                %if not node['pending_retraction']:
+                                    <a class="btn btn-danger" href="${web_url_for('node_registration_retraction_get', pid=node['id'])}">Retract Registration</a>
+                                % else:
+                                    <p><strong>This registration is already pending a retraction.</strong></p>
+                                %endif
+
+                            % endif
+
+
+                        </div>
                     </div>
                 </form>
             </div>
