@@ -31,7 +31,7 @@ if ($('#grid').length) {
             url: notificationsURL, status: status, error: error
         });
     });
-});
+}
 
 // Initialize treebeard grid for wiki
 var ProjectWiki = require('js/wikiTreebeard.js');
@@ -75,13 +75,16 @@ $(document).ready(function() {
         });
     }
     var disableCategory = !window.contextVars.node.parentExists;
-    var categorySettingsVM = new ProjectSettings.NodeCategorySettings(
-        window.contextVars.node.category,
-        categories,
-        window.contextVars.node.urls.update,
-        disableCategory
-    );
-    ko.applyBindings(categorySettingsVM, $('#nodeCategorySettings')[0]);
+    // need check because node category doesn't exist for registrations
+    if ($('#nodeCategorySettings').length) {
+        var categorySettingsVM = new ProjectSettings.NodeCategorySettings(
+            window.contextVars.node.category,
+            categories,
+            window.contextVars.node.urls.update,
+            disableCategory
+        );
+        ko.applyBindings(categorySettingsVM, $('#nodeCategorySettings')[0]);
+    }
 
     $(window).resize(function (){ fixAffixWidth(); });
     $('.project-page .panel').on('affixed.bs.affix', function(){ fixAffixWidth(); });
@@ -112,6 +115,8 @@ $(document).ready(function() {
 
     });
 
+    var checkedOnLoad = $('#selectAddonsForm input:checked');
+    var uncheckedOnLoad = $('#selectAddonsForm input:not(:checked)');
 
     // Set up submission for addon selection form
     $('#selectAddonsForm').on('submit', function() {
@@ -130,12 +135,26 @@ $(document).ready(function() {
             dataType: 'json',
             success: function() {
                 msgElm.text('Settings updated').fadeIn();
+                checkedOnLoad = $('#selectAddonsForm input:checked');
+                uncheckedOnLoad = $('#selectAddonsForm input:not(:checked)');
                 window.location.reload();
             }
         });
 
         return false;
 
+    });
+
+    /* Before closing the page, Check whether the newly checked addon are updated or not */
+    $(window).on('beforeunload',function() {
+      //new checked items but not updated
+      var checked = uncheckedOnLoad.filter('#selectAddonsForm input:checked');
+      //new unchecked items but not updated
+      var unchecked = checkedOnLoad.filter('#selectAddonsForm input:not(:checked)');
+
+      if(unchecked.length > 0 || checked.length > 0) {
+        return 'The changes on addon setting are not submitted!';
+      }
     });
 
     // Show capabilities modal on selecting an addon; unselect if user
@@ -160,3 +179,5 @@ $(document).ready(function() {
     });
 
 });
+
+

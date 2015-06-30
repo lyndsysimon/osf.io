@@ -18,7 +18,7 @@ from website import settings
 from website.addons.base import AddonNodeSettingsBase
 from website.addons.wiki import utils as wiki_utils
 from website.addons.wiki.settings import WIKI_CHANGE_DATE
-from website.project.model import write_permissions_revoked
+from website.project.signals import write_permissions_revoked
 
 from .exceptions import (
     NameEmptyError,
@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class AddonWikiNodeSettings(AddonNodeSettingsBase):
+    complete = True
+    has_auth = True
 
     is_publicly_editable = fields.BooleanField(default=False, index=True)
 

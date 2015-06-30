@@ -433,7 +433,7 @@ function doItemOp(operation, to, from, rename, conflict) {
     if (to.data.provider === from.provider) {
         tb.pendingFileOps.push(from.id);
     }
-    _fangornOrderFolder.call(tb, from.parent());
+    orderFolder.call(tb, from.parent());
 
 
     $.ajax({
@@ -491,7 +491,7 @@ function doItemOp(operation, to, from, rename, conflict) {
             from.load = true;
         }
         // no need to redraw because fangornOrderFolder does it
-        _fangornOrderFolder.call(tb, from.parent());
+        orderFolder.call(tb, from.parent());
     }).fail(function(xhr, textStatus) {
         if (to.data.provider === from.provider) {
             tb.pendingFileOps.pop();
@@ -527,7 +527,7 @@ function doItemOp(operation, to, from, rename, conflict) {
             }
         });
 
-        _fangornOrderFolder.call(tb, from.parent());
+        orderFolder.call(tb, from.parent());
     });
 }
 
@@ -693,7 +693,7 @@ function _fangornDropzoneDrop(treebeard, event) {
 function _fangornComplete(treebeard, file) {
     var item = file.treebeardParent;
     resolveconfigOption.call(treebeard, item, 'onUploadComplete', [item]);
-    _fangornOrderFolder.call(treebeard, item);
+    orderFolder.call(treebeard, item);
 }
 
 /**
@@ -862,7 +862,7 @@ function _createFolder(event, dismissCallback, helpText) {
     }).then(function(item) {
         inheritFromParent({data: item}, parent, ['branch']);
         item = tb.createItem(item, parent.id);
-        _fangornOrderFolder.call(tb, parent);
+        orderFolder.call(tb, parent);
         item.notify.update('New folder created!', 'success', undefined, 1000);
         if(dismissCallback) {
             dismissCallback();
@@ -1072,7 +1072,7 @@ function _fangornLazyLoadOnLoad (tree, event) {
     reapplyTooltips();
 
     if (tree.depth > 1) {
-        _fangornOrderFolder.call(this, tree);
+        orderFolder.call(this, tree);
     }
 }
 
@@ -1082,13 +1082,16 @@ function _fangornLazyLoadOnLoad (tree, event) {
  * @this Treebeard.controller
  * @private
  */
-function _fangornOrderFolder(tree) {
+function orderFolder(tree) {
     // Checking if this column does in fact have sorting
+    var sortDirection = '';
     if (this.isSorted[0]) {
-        var sortDirection = this.isSorted[0].desc ? 'desc' : 'asc';
-        tree.sortChildren(this, sortDirection, 'text', 0, 1);
-        this.redraw();
+        sortDirection = this.isSorted[0].desc ? 'desc' : 'asc';
+    } else {
+        sortDirection = 'asc';
     }
+    tree.sortChildren(this, sortDirection, 'text', 0, 1);
+    this.redraw();
 }
 
 /**
@@ -1509,7 +1512,7 @@ var FGItemButtons = {
     }
 };
 
-var _dismissToolbar = function(){
+var dismissToolbar = function(){
     var tb = this;
     if (tb.toolbarMode() === toolbarModes.SEARCH){
         tb.resetFilter();
@@ -1529,7 +1532,7 @@ var FGToolbar = {
         self.mode = self.tb.toolbarMode;
         self.isUploading = args.treebeard.isUploading;
         self.helpText = m.prop('');
-        self.dismissToolbar = _dismissToolbar.bind(self.tb);
+        self.dismissToolbar = dismissToolbar.bind(self.tb);
         self.createFolder = function(event){
             _createFolder.call(self.tb, event, self.dismissToolbar, self.helpText );
         };
@@ -1665,10 +1668,11 @@ var FGToolbar = {
                 onclick: function(event){
                     var mithrilContent = m('div', [
                         m('h3.break-word.m-b-lg', 'How to Use the File Browser'),
-                        m('p', [ m('b', 'Select rows:'), m('span', ' Click on a row (outside the name) to show further actions in the toolbar.')]),
-                        m('p', [ m('b', 'Select Multiple Files:'), m('span', ' Use command or shift keys to select multiple files.')]),
+                        m('p', [ m('b', 'Select Rows:'), m('span', ' Click on a row (outside the name) to show further actions in the toolbar.')]),
+                        m('p', [ m('b', 'Select Multiple Files:'), m('span', ' Use Command or Shift keys to select multiple files.')]),
                         m('p', [ m('b', 'Open Files:'), m('span', ' Click a file name to go to the file.')]),
                         m('p', [ m('b', 'Open Files in New Tab:'), m('span',  ' Press Command (or Ctrl in Windows) and  click a file name to open it in a new tab.')]),
+                        m('p', [ m('b', 'Copy Files:'), m('span', ' Press Option (or Alt in Windows) while dragging a file to a new folder or component.')])
                     ]);
                     var mithrilButtons = m('div', [
                         m('span.tb-modal-btn', { 'class' : 'text-primary', onclick : function(event) { ctrl.tb.modal.dismiss(); } }, 'Close'),
@@ -1729,7 +1733,7 @@ function filterRowsNotInParent(rows) {
  * @param {Object} item A Treebeard _item object.
  * @private
  */
-function _openParentFolders (item) {
+function openParentFolders (item) {
     var tb = this;
     // does it have a parent? If so change open
     var parent = item.parent();
@@ -1739,7 +1743,7 @@ function _openParentFolders (item) {
             parent.load = true;
             tb.toggleFolder(index);
         }
-        _openParentFolders.call(tb, parent);
+        openParentFolders.call(tb, parent);
     }
     return;
 }
@@ -1756,10 +1760,10 @@ function _openParentFolders (item) {
     var scrollToItem = false;
     filterRowsNotInParent.call(tb, tb.multiselected());
     if (tb.toolbarMode() === 'search') {
-        _dismissToolbar.call(tb);
+        dismissToolbar.call(tb);
         scrollToItem = true;
         // recursively open parents of the selected item but do not lazyload;
-        _openParentFolders.call(tb, row);
+        openParentFolders.call(tb, row);
     }
 
     if (tb.multiselected().length === 1){
@@ -1852,7 +1856,7 @@ function _dropLogic(event, items, folder) {
     var tb = this;
 
     if (items.length < 1 ||
-        items.indoexOf(folder) > -1 ||
+        items.indexOf(folder) > -1 ||
         copyMode === 'forbidden'
     ) {
         return;
@@ -2029,7 +2033,7 @@ tbOptions = {
                 return;
             }
             tb.clearMultiselect();
-            _dismissToolbar.call(tb);
+            dismissToolbar.call(tb);
         });
 
         $(window).on('beforeunload', function() {
@@ -2048,7 +2052,7 @@ tbOptions = {
         }
         $(window).on('keydown', function(event){
             if (event.keyCode === ESCAPE_KEY) {
-                _dismissToolbar.call(tb);
+                dismissToolbar.call(tb);
             }
         });
     },
@@ -2193,10 +2197,11 @@ Fangorn.Utils = {
     reapplyTooltips : reapplyTooltips,
     setCurrentFileID: setCurrentFileID,
     scrollToFile: scrollToFile,
-    openParentFolders : _openParentFolders,
-    dismissToolbar : _dismissToolbar,
+    openParentFolders : openParentFolders,
+    dismissToolbar : dismissToolbar,
     uploadRowTemplate : uploadRowTemplate,
-    resolveIconView: resolveIconView
+    resolveIconView: resolveIconView,
+    orderFolder: orderFolder
 };
 
 Fangorn.DefaultOptions = tbOptions;
