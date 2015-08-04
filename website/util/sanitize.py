@@ -2,6 +2,7 @@
 import bleach
 import json
 
+from website.templates import filters
 
 def strip_html(unclean):
     """Sanitize a string, removing (as opposed to escaping) HTML tags
@@ -109,6 +110,7 @@ def temp_ampersand_fixer(s):
     return s.replace('&amp;', '&')
 
 
+@filters.disables_default_filters
 def safe_json(value):
     """
     Dump a string to JSON in a manner that can be used for JS strings in mako templates.
