@@ -53,6 +53,7 @@ from website.util.permissions import CREATOR_PERMISSIONS
 from website.project.metadata.schemas import OSF_META_SCHEMAS
 from website.util.permissions import DEFAULT_CONTRIBUTOR_PERMISSIONS
 from website.project import signals as project_signals
+from website.tag import TaggableMixin
 
 html_parser = HTMLParser()
 
@@ -520,7 +521,7 @@ class NodeUpdateError(Exception):
         self.key = key
         self.reason = reason
 
-class Node(GuidStoredObject, AddonModelMixin, IdentifierMixin):
+class Node(GuidStoredObject, AddonModelMixin, IdentifierMixin, TaggableMixin):
 
     #: Whether this is a pointer or not
     primary = True
@@ -620,7 +621,6 @@ class Node(GuidStoredObject, AddonModelMixin, IdentifierMixin):
     users_watching_node = fields.ForeignField('user', list=True, backref='watched')
 
     logs = fields.ForeignField('nodelog', list=True, backref='logged')
-    tags = fields.ForeignField('tag', list=True, backref='tagged')
 
     # Tags for internal use
     system_tags = fields.StringField(list=True)
@@ -1777,26 +1777,6 @@ class Node(GuidStoredObject, AddonModelMixin, IdentifierMixin):
             self.tags.remove(tag)
             self.add_log(
                 action=NodeLog.TAG_REMOVED,
-                params={
-                    'parent_node': self.parent_id,
-                    'node': self._primary_key,
-                    'tag': tag,
-                },
-                auth=auth,
-                save=False,
-            )
-            if save:
-                self.save()
-
-    def add_tag(self, tag, auth, save=True):
-        if tag not in self.tags:
-            new_tag = Tag.load(tag)
-            if not new_tag:
-                new_tag = Tag(_id=tag)
-            new_tag.save()
-            self.tags.append(new_tag)
-            self.add_log(
-                action=NodeLog.TAG_ADDED,
                 params={
                     'parent_node': self.parent_id,
                     'node': self._primary_key,
