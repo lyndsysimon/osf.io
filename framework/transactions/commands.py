@@ -29,7 +29,7 @@ def show_live(database=None):
 def disconnect(database=None):
     database = database or proxy_database
     try:
-        database.connection.close()
+        database.client.close()
     except AttributeError:
         if not osfsettings.DEBUG_MODE:
             logger.error('MongoDB client not attached to request.')

@@ -19,7 +19,7 @@ lxml==3.4.1
 mailchimp==2.0.9
 nameparser==0.3.3
 py-bcrypt==0.4
-pymongo==2.5.1
+pymongo>=3.0,<4
 python-dateutil==2.4.2
 python-gnupg==0.3.6
 pytz==2014.9
