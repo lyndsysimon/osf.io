@@ -709,6 +709,23 @@ var currentUser = function(){
 };
 
 /**
+ * Maps an object to an array of {key: KEY, value: VALUE} pairs
+ *
+ * @param {Object} obj
+ * @returns {Array} array of key, value pairs
+**/
+var iterObject = function(obj) {
+    var ret = [];
+    $.each(obj, function(prop, value) {
+        ret.push({
+            key: prop,
+            value: value
+        });
+    });
+    return ret;
+};
+
+/**
  * Use a search function to get the index of an object in an array
  *
  * @param {Array} array
@@ -757,6 +774,7 @@ module.exports = window.$.osf = {
     confirmDangerousAction: confirmDangerousAction,
     isIE: isIE,
     isSafari:isSafari,
+    iterObject: iterObject,
     indexOf: indexOf,
     currentUser: currentUser
 };

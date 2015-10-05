@@ -44,8 +44,8 @@ def prereg_landing_page(auth, **kwargs):
 def prereg_draft_registrations(auth, **kwargs):
     """API endpoint; returns prereg draft registrations the user can resume"""
     PREREG_CHALLENGE_METASCHEMA = models.MetaSchema.find_one(
-        Q('name', 'eq', 'Open-Ended Registration') &
-        Q('schema_version', 'eq', 2)
+        Q('name', 'eq', 'Prereg Prize') &
+        Q('schema_version', 'eq', 1)
     )
 
     drafts = models.DraftRegistration.find(
